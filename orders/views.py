@@ -87,7 +87,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         for item in cart.items.all():
             items_data.append({
-                'product': item.product,
+                'product_id': item.product_id,
                 'quantity': item.quantity,
                 'unit_price': item.product.price
                 })
