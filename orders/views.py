@@ -49,12 +49,13 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Response({"error": "Product Does Not Exist"}, status=400)
 
         unit_price = product.price
+        total_amount = quantity * unit_price
 
         with transaction.atomic():
             if user.is_authenticated:
-                order = Order.objects.create(user=user)
+                order = Order.objects.create(user=user, total_amount=total_amount)
             else:
-                order = Order.objects.create()
+                order = Order.objects.create(total_amount=total_amount)
 
             OrderItem.objects.create(
                     order=order,
