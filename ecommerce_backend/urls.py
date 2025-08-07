@@ -22,10 +22,10 @@ urlpatterns = [
     path('api/products/', include('products.urls')),
 
     #orders
-    #path('api/orders/', include('orders.urls')),
+    path('api/orders/', include('orders.urls')),
 
     #cart
-    #path('api/cart/', include('cart.urls')),
+    path('api/cart/', include('carts.urls')),
 
     #jwt web token
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'payments',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
+    'ratelimit',
 ]
 
 MIDDLEWARE = [

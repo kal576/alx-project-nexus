@@ -1,0 +1,48 @@
+from django.shortcuts import render
+from .serializers import CartSerializer, CartItemSerializer
+from rest_framework.response import Response
+from rest_framework import viewsets, status
+from rest_framework.permissions import AllowAny
+from .models import Cart, CartItem
+from django.shortcuts import get_object_or_404
+
+class CartViewSet(viewsets.ViewSet):
+    """
+    Gets the cart per session/user, and lists it
+    """
+    permissions_allowed = [AllowAny]
+
+    def get_cart(self, request):
+        cart = self.get_cart(request)
+        """Returns users cart else none"""
+        if request.user.is_authenticated:
+            cart, _ = Cart.objects.get_or_create(user=request.user)
+            return cart
+        else:
+            session_key = rerquest.session.session_key or request.session.save()
+            cart, _ = Cart.objects.get_or_create(session_key=session_key)
+
+    def list(self, request):
+        """GET /api/cart/ views current cart content"""
+        cart = self.get_cart(request)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data)
+
+    def add_item(self, request):
+        """POST /api/cart/ adds item to cart"""
+        cart = self.get_cart(request)
+        product_id = request.data.get("product_id")
+        product = request.data.get("product")
+        quantity = request.data.get("quantity")
+
+        item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        if not created:
+            item.quantity += quantity
+            item.save()
+        return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
+
+    def remove_item(self, request):
+        cart = self.get_cart(request)
+        item = get_or_404(CartItem, pk=pk, cart=cart)
+        item.delete()
+        return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)

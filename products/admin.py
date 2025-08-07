@@ -3,7 +3,7 @@ from .models import Category, Products, Inventory
 
 @admin.register(Products)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'stock', 'price']
+    list_display = ['id', 'name', 'description', 'stock', 'price']
     list_filter = ['stock', 'price']
     search_fields = ['name']
 

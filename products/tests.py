@@ -55,7 +55,7 @@ class ECommerceAPITests(APITestCase):
             'email': 'admin@example.com',
             'password': 'adminpass123'
         }
-        response = self.client.post(self.login_url, data)
+        response = self.client.logout(self.login_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access', response.data)
 
