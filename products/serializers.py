@@ -10,10 +10,19 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductsSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
+    available_stock = serializers.ReadOnlyField()
 
     class Meta:
         model = Products
         fields = "__all__"
+        exclude = ["reserved"]
+
+
+class AdminProductSerializer(ProductsSerializer):
+    class Meta:
+        model = Products
+        fields = "__all__"
+        read_only_fields = ["reserved", "available_stock"]
 
 
 class InventorySerializer(serializers.ModelSerializer):

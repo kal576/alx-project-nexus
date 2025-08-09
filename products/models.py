@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Category(models.Model):
-    name = models.CharField(unique=True)
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
@@ -49,7 +49,7 @@ class Inventory(models.Model):
     mvt_type = models.CharField(max_length=3, choices=MvtType.choices)
     quantity = models.PositiveIntegerField()
     image = models.ImageField(upload_to="products/", blank=True, null=True)
-    note = models.CharField(blank=True, null=True)
+    note = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

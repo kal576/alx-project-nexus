@@ -9,6 +9,7 @@ from .models import Products, Category, Inventory, MvtType
 from .serializers import (
     CategorySerializer,
     ProductsSerializer,
+    AdminProductSerializer,
     InventorySerializer,
     StockMovementSerializer,
 )
@@ -27,7 +28,6 @@ class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     queryset = Products.objects.all()
-    serializer_class = ProductsSerializer
     permission_classes = [AllowAny]
     search_fields = ["name"]
     ordering_fields = ["price", "created_at", "stock"]
@@ -39,6 +39,11 @@ class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_authenticated and self.request.user.is_admin:
             return AdminProductFilter
         return CustomerProductFilter
+
+    def get_serializer_class(self):
+        if self.request.user.is_authenticated and self.request.user.is_staff:
+            return AdminProductsSerializer
+        return CustomerProductsSerializer
 
     @action(detail=False, methods=["get"])
     def filter_options(self, request):
