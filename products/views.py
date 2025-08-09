@@ -7,6 +7,7 @@ from django.db.models import Q, Min, Max, Avg
 from rest_framework import viewsets, status, filters
 from .models import Products, Category, Inventory, MvtType
 from .serializers import CategorySerializer, ProductsSerializer, InventorySerializer, StockMovementSerializer
+from .tasks import low_stock_alert
 from .filters import AdminProductFilter, CustomerProductFilter, InventoryFilter, CategoryFilter
 
 class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -73,6 +74,10 @@ class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
                             mvt_type=serializers.validated_data['mvt_type'],
                             note=erializers.validated_data('note')
                             )
+
+                    #low stocks alert
+                    low_stock_alert.delay(product.id)
+
                     return Response({
                     'message': 'Stock updated successfully',
                     'old_stock': product.stock,

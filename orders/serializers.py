@@ -35,12 +35,12 @@ class OrderSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             for item in items_data:
                 product = item['product']
-                quantity = item['quantity']
+                quantity = int(item['quantity'])
                 unit_price = item['unit_price']
 
                 #check if there is enough stock
                 if not product.can_sell(quantity):
-                    raise serializers.ValidationError(f"Not enough stock. Available: {product.stock}")
+                    raise serializers.ValidationError(f"Not enough stock for {product.name}. Available: {product.stock}")
 
                 #calculate the total
                 total += quantity * float(unit_price)
@@ -54,11 +54,10 @@ class OrderSerializer(serializers.ModelSerializer):
             for item in items_data:
                 OrderItem.objects.create(
                         order=order,
-                        product=product,
-                        quantity=quantity,
-                        unit_price=unit_price
+                        product=item['product'],
+                        quantity=item['quantity'],
+                        unit_price=item['unit_price']
                         )
 
-                order.save()
-                return order
+        return order
 

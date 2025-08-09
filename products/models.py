@@ -18,13 +18,14 @@ class Products(models.Model):
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
     #checks the remaining stocks
     def can_sell(self, quantity):
-        return self.stock >= quantity
+        return self.stock >= int(quantity)
 
     class Meta:
         verbose_name_plural = "Products"
