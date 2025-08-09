@@ -67,7 +67,6 @@ hostname from broker URL. This is useful when failover is used to fill
     )
 """
 
-
 from __future__ import annotations
 
 import amqp
@@ -91,12 +90,13 @@ class Message(base.Message):
             body=msg.body,
             channel=channel,
             delivery_tag=msg.delivery_tag,
-            content_type=props.get('content_type'),
-            content_encoding=props.get('content_encoding'),
+            content_type=props.get("content_type"),
+            content_encoding=props.get("content_encoding"),
             delivery_info=msg.delivery_info,
             properties=msg.properties,
-            headers=props.get('application_headers') or {},
-            **kwargs)
+            headers=props.get("application_headers") or {},
+            **kwargs,
+        )
 
 
 class Channel(amqp.Channel, base.StdChannel):
@@ -104,9 +104,16 @@ class Channel(amqp.Channel, base.StdChannel):
 
     Message = Message
 
-    def prepare_message(self, body, priority=None,
-                        content_type=None, content_encoding=None,
-                        headers=None, properties=None, _Message=amqp.Message):
+    def prepare_message(
+        self,
+        body,
+        priority=None,
+        content_type=None,
+        content_encoding=None,
+        headers=None,
+        properties=None,
+        _Message=amqp.Message,
+    ):
         """Prepare message so that it can be sent using this transport."""
         return _Message(
             body,
@@ -114,7 +121,7 @@ class Channel(amqp.Channel, base.StdChannel):
             content_type=content_type,
             content_encoding=content_encoding,
             application_headers=headers,
-            **properties or {}
+            **properties or {},
         )
 
     def prepare_queue_arguments(self, arguments, **kwargs):
@@ -143,20 +150,18 @@ class Transport(base.Transport):
     # if the connection is lost, but nothing we can do about that here.
     connection_errors = amqp.Connection.connection_errors
     channel_errors = amqp.Connection.channel_errors
-    recoverable_connection_errors = \
-        amqp.Connection.recoverable_connection_errors
+    recoverable_connection_errors = amqp.Connection.recoverable_connection_errors
     recoverable_channel_errors = amqp.Connection.recoverable_channel_errors
 
-    driver_name = 'py-amqp'
-    driver_type = 'amqp'
+    driver_name = "py-amqp"
+    driver_type = "amqp"
 
     implements = base.Transport.implements.extend(
         asynchronous=True,
         heartbeats=True,
     )
 
-    def __init__(self, client,
-                 default_port=None, default_ssl_port=None, **kwargs):
+    def __init__(self, client, default_port=None, default_ssl_port=None, **kwargs):
         self.client = client
         self.default_port = default_port or self.default_port
         self.default_ssl_port = default_ssl_port or self.default_ssl_port
@@ -180,24 +185,29 @@ class Transport(base.Transport):
         for name, default_value in self.default_connection_params.items():
             if not getattr(conninfo, name, None):
                 setattr(conninfo, name, default_value)
-        if conninfo.hostname == 'localhost':
-            conninfo.hostname = '127.0.0.1'
+        if conninfo.hostname == "localhost":
+            conninfo.hostname = "127.0.0.1"
         # when server_hostname is None, use hostname from URI.
-        if isinstance(conninfo.ssl, dict) and \
-                'server_hostname' in conninfo.ssl and \
-                conninfo.ssl['server_hostname'] is None:
-            conninfo.ssl['server_hostname'] = conninfo.hostname
-        opts = dict({
-            'host': conninfo.host,
-            'userid': conninfo.userid,
-            'password': conninfo.password,
-            'login_method': conninfo.login_method,
-            'virtual_host': conninfo.virtual_host,
-            'insist': conninfo.insist,
-            'ssl': conninfo.ssl,
-            'connect_timeout': conninfo.connect_timeout,
-            'heartbeat': conninfo.heartbeat,
-        }, **conninfo.transport_options or {})
+        if (
+            isinstance(conninfo.ssl, dict)
+            and "server_hostname" in conninfo.ssl
+            and conninfo.ssl["server_hostname"] is None
+        ):
+            conninfo.ssl["server_hostname"] = conninfo.hostname
+        opts = dict(
+            {
+                "host": conninfo.host,
+                "userid": conninfo.userid,
+                "password": conninfo.password,
+                "login_method": conninfo.login_method,
+                "virtual_host": conninfo.virtual_host,
+                "insist": conninfo.insist,
+                "ssl": conninfo.ssl,
+                "connect_timeout": conninfo.connect_timeout,
+                "heartbeat": conninfo.heartbeat,
+            },
+            **conninfo.transport_options or {},
+        )
         conn = self.Connection(**opts)
         conn.client = self.client
         conn.connect()
@@ -223,19 +233,18 @@ class Transport(base.Transport):
 
     def qos_semantics_matches_spec(self, connection):
         props = connection.server_properties
-        if props.get('product') == 'RabbitMQ':
-            return version_string_as_tuple(props['version']) < (3, 3)
+        if props.get("product") == "RabbitMQ":
+            return version_string_as_tuple(props["version"]) < (3, 3)
         return True
 
     @property
     def default_connection_params(self):
         return {
-            'userid': 'guest',
-            'password': 'guest',
-            'port': (self.default_ssl_port if self.client.ssl
-                     else self.default_port),
-            'hostname': 'localhost',
-            'login_method': 'PLAIN',
+            "userid": "guest",
+            "password": "guest",
+            "port": (self.default_ssl_port if self.client.ssl else self.default_port),
+            "hostname": "localhost",
+            "login_method": "PLAIN",
         }
 
     def get_manager(self, *args, **kwargs):

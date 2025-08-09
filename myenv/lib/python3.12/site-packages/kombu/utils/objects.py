@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from threading import RLock
 
-__all__ = ('cached_property',)
+__all__ = ("cached_property",)
 
 try:
     from functools import cached_property as _cached_property
@@ -23,11 +23,11 @@ class cached_property(_cached_property):
         self.__set = fset
         self.__del = fdel
 
-        if not hasattr(self, 'attrname'):
+        if not hasattr(self, "attrname"):
             # This is a backport so we set this ourselves.
             self.attrname = self.func.__name__
 
-        if not hasattr(self, 'lock'):
+        if not hasattr(self, "lock"):
             # Prior to Python 3.12, functools.cached_property has an
             # undocumented lock which is required for thread-safe __set__
             # and __delete__. Create one if it isn't already present.

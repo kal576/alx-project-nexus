@@ -27,40 +27,42 @@ _environment = None
 
 def coro(gen):
     """Decorator to mark generator as co-routine."""
+
     @wraps(gen)
     def wind_up(*args, **kwargs):
         it = gen(*args, **kwargs)
         next(it)
         return it
+
     return wind_up
 
 
 def _detect_environment():
     # ## -eventlet-
-    if 'eventlet' in sys.modules:
+    if "eventlet" in sys.modules:
         try:
             import socket
 
             from eventlet.patcher import is_monkey_patched as is_eventlet
 
             if is_eventlet(socket):
-                return 'eventlet'
+                return "eventlet"
         except ImportError:
             pass
 
     # ## -gevent-
-    if 'gevent' in sys.modules:
+    if "gevent" in sys.modules:
         try:
             import socket
 
             from gevent import socket as _gsocket
 
             if socket.socket is _gsocket.socket:
-                return 'gevent'
+                return "gevent"
         except ImportError:
             pass
 
-    return 'default'
+    return "default"
 
 
 def detect_environment():
@@ -73,7 +75,7 @@ def detect_environment():
 
 def entrypoints(namespace):
     """Return setuptools entrypoints for namespace."""
-    if sys.version_info >= (3,10):
+    if sys.version_info >= (3, 10):
         entry_points = importlib_metadata.entry_points(group=namespace)
     else:
         entry_points = importlib_metadata.entry_points()
@@ -82,10 +84,7 @@ def entrypoints(namespace):
         except AttributeError:
             entry_points = entry_points.select(group=namespace)
 
-    return (
-        (ep, ep.load())
-        for ep in entry_points
-    )
+    return ((ep, ep.load()) for ep in entry_points)
 
 
 def fileno(f):
@@ -134,4 +133,4 @@ def nested(*managers):  # pragma: no cover
                 # have been raised and caught by an exit method
                 reraise(exc[0], exc[1], exc[2])
     finally:
-        del(exc)
+        del exc

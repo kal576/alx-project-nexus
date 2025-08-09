@@ -6,24 +6,24 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0005_alter_products_options_inventory_product_category_and_more'),
+        ("products", "0005_alter_products_options_inventory_product_category_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='inventory',
-            name='product_category',
+            model_name="inventory",
+            name="product_category",
         ),
         migrations.RemoveField(
-            model_name='inventory',
-            name='product_image',
+            model_name="inventory",
+            name="product_image",
         ),
         migrations.RemoveField(
-            model_name='inventory',
-            name='product_name',
+            model_name="inventory",
+            name="product_name",
         ),
         migrations.RemoveField(
-            model_name='inventory',
-            name='product_price',
+            model_name="inventory",
+            name="product_price",
         ),
     ]

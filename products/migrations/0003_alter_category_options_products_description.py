@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0002_remove_products_product_id_products_category_and_more'),
+        ("products", "0002_remove_products_product_id_products_category_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='category',
-            options={'verbose_name_plural': 'Categories'},
+            name="category",
+            options={"verbose_name_plural": "Categories"},
         ),
         migrations.AddField(
-            model_name='products',
-            name='description',
+            model_name="products",
+            name="description",
             field=models.TextField(blank=True),
         ),
     ]

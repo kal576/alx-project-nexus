@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import deque
 from time import monotonic
 
-__all__ = ('TokenBucket',)
+__all__ = ("TokenBucket",)
 
 
 class TokenBucket:

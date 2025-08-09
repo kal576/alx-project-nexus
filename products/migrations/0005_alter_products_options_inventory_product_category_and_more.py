@@ -7,37 +7,39 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0004_inventory_image_alter_inventory_product_and_more'),
+        ("products", "0004_inventory_image_alter_inventory_product_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='products',
-            options={'verbose_name_plural': 'Products'},
+            name="products",
+            options={"verbose_name_plural": "Products"},
         ),
         migrations.AddField(
-            model_name='inventory',
-            name='product_category',
+            model_name="inventory",
+            name="product_category",
             field=models.CharField(blank=True, max_length=100),
         ),
         migrations.AddField(
-            model_name='inventory',
-            name='product_image',
-            field=models.ImageField(blank=True, null=True, upload_to='products/'),
+            model_name="inventory",
+            name="product_image",
+            field=models.ImageField(blank=True, null=True, upload_to="products/"),
         ),
         migrations.AddField(
-            model_name='inventory',
-            name='product_name',
+            model_name="inventory",
+            name="product_name",
             field=models.CharField(blank=True, max_length=255),
         ),
         migrations.AddField(
-            model_name='inventory',
-            name='product_price',
+            model_name="inventory",
+            name="product_price",
             field=models.DecimalField(decimal_places=2, max_digits=10, null=True),
         ),
         migrations.AlterField(
-            model_name='inventory',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.products'),
+            model_name="inventory",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="products.products"
+            ),
         ),
     ]

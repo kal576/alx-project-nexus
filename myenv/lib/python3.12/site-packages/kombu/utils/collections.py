@@ -1,6 +1,5 @@
 """Custom maps, sequences, etc."""
 
-
 from __future__ import annotations
 
 
@@ -11,7 +10,7 @@ class HashedSeq(list):
     multiple times.
     """
 
-    __slots__ = 'hashvalue'
+    __slots__ = "hashvalue"
 
     def __init__(self, *seq):
         self[:] = seq

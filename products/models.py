@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Category(models.Model):
     name = models.CharField(unique=True)
 
@@ -9,6 +10,7 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
 
+
 class Products(models.Model):
     name = models.CharField(max_length=255)
     stock = models.PositiveIntegerField(default=0)
@@ -16,7 +18,7 @@ class Products(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image = models.ImageField(upload_to="products/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
@@ -29,22 +31,24 @@ class Products(models.Model):
     def __str__(self):
         return self.name
 
-    #checks the remaining stocks
+    # checks the remaining stocks
     def can_sell(self, quantity):
         return self.available_stock >= int(quantity)
 
     class Meta:
         verbose_name_plural = "Products"
-        
+
+
 class MvtType(models.TextChoices):
-    IN = 'IN', 'Stock In'
-    OUT = 'OUT', 'Stock Out'
+    IN = "IN", "Stock In"
+    OUT = "OUT", "Stock Out"
+
 
 class Inventory(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     mvt_type = models.CharField(max_length=3, choices=MvtType.choices)
-    quantity= models.PositiveIntegerField()
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    quantity = models.PositiveIntegerField()
+    image = models.ImageField(upload_to="products/", blank=True, null=True)
     note = models.CharField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -53,16 +57,22 @@ class Inventory(models.Model):
 
     def clean(self):
         # Validate first
-        if self.product and self.mvt_type == MvtType.OUT and self.quantity > self.product.stock:
-                raise ValidationError(f"Cannot remove {self.quantity}. Only {self.product.stock} in stock.")
+        if (
+            self.product
+            and self.mvt_type == MvtType.OUT
+            and self.quantity > self.product.stock
+        ):
+            raise ValidationError(
+                f"Cannot remove {self.quantity}. Only {self.product.stock} in stock."
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
 
-        #save inventory record
+        # save inventory record
         super().save(*args, **kwargs)
 
-        #update product stock
+        # update product stock
         if self.mvt_type == MvtType.IN:
             self.product.stock += self.quantity
         elif self.mvt_type == MvtType.OUT:
@@ -70,7 +80,7 @@ class Inventory(models.Model):
         else:
             raise ValidationError("Invalid Movement Type")
 
-        self.product.save(update_fields=['stock', 'updated_at'])
+        self.product.save(update_fields=["stock", "updated_at"])
 
         class Meta:
             verbose_name_plural = "Inventories"

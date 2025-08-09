@@ -171,9 +171,7 @@ def matches_re(regex, flags=0, func=None):
     valid_funcs = (re.fullmatch, None, re.search, re.match)
     if func not in valid_funcs:
         msg = "'func' must be one of {}.".format(
-            ", ".join(
-                sorted((e and e.__name__) or "None" for e in set(valid_funcs))
-            )
+            ", ".join(sorted((e and e.__name__) or "None" for e in set(valid_funcs)))
         )
         raise ValueError(msg)
 
@@ -297,13 +295,10 @@ class _IsCallableValidator:
         """
         if not callable(value):
             message = (
-                "'{name}' must be callable "
-                "(got {value!r} that is a {actual!r})."
+                "'{name}' must be callable " "(got {value!r} that is a {actual!r})."
             )
             raise NotCallableError(
-                msg=message.format(
-                    name=attr.name, value=value, actual=value.__class__
-                ),
+                msg=message.format(name=attr.name, value=value, actual=value.__class__),
                 value=value,
             )
 
@@ -330,9 +325,7 @@ def is_callable():
 @attrs(repr=False, slots=True, unsafe_hash=True)
 class _DeepIterable:
     member_validator = attrib(validator=is_callable())
-    iterable_validator = attrib(
-        default=None, validator=optional(is_callable())
-    )
+    iterable_validator = attrib(default=None, validator=optional(is_callable()))
 
     def __call__(self, inst, attr, value):
         """
@@ -346,9 +339,7 @@ class _DeepIterable:
 
     def __repr__(self):
         iterable_identifier = (
-            ""
-            if self.iterable_validator is None
-            else f" {self.iterable_validator!r}"
+            "" if self.iterable_validator is None else f" {self.iterable_validator!r}"
         )
         return (
             f"<deep_iterable validator for{iterable_identifier}"
@@ -596,8 +587,7 @@ class _NotValidator:
     validator = attrib()
     msg = attrib(
         converter=default_if_none(
-            "not_ validator child '{validator!r}' "
-            "did not raise a captured error"
+            "not_ validator child '{validator!r}' " "did not raise a captured error"
         )
     )
     exc_types = attrib(

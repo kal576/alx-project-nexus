@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('carts', '0003_cart_session_key_cartitem_created_at_alter_cart_user_and_more'),
+        ("carts", "0003_cart_session_key_cartitem_created_at_alter_cart_user_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cartitem',
-            name='product_name',
-            field=models.CharField(default='Unknown Product', max_length=255),
+            model_name="cartitem",
+            name="product_name",
+            field=models.CharField(default="Unknown Product", max_length=255),
         ),
     ]

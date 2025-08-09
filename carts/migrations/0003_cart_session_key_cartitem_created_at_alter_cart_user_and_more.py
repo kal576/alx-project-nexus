@@ -9,29 +9,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('carts', '0002_initial'),
+        ("carts", "0002_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cart',
-            name='session_key',
+            model_name="cart",
+            name="session_key",
             field=models.CharField(blank=True, max_length=40, null=True),
         ),
         migrations.AddField(
-            model_name='cartitem',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="cartitem",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='cart',
-            name='user',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="cart",
+            name="user",
+            field=models.OneToOneField(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddConstraint(
-            model_name='cart',
-            constraint=models.CheckConstraint(condition=models.Q(models.Q(('session_key__isnull', True), ('user__isnull', False)), models.Q(('session_key__isnull', False), ('user__isnull', True)), _connector='OR'), name='user_or_session'),
+            model_name="cart",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    models.Q(("session_key__isnull", True), ("user__isnull", False)),
+                    models.Q(("session_key__isnull", False), ("user__isnull", True)),
+                    _connector="OR",
+                ),
+                name="user_or_session",
+            ),
         ),
     ]

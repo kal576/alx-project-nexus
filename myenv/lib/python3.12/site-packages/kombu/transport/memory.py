@@ -95,12 +95,12 @@ class Transport(virtual.Transport):
 
     implements = base.Transport.implements
 
-    driver_type = 'memory'
-    driver_name = 'memory'
+    driver_type = "memory"
+    driver_name = "memory"
 
     def __init__(self, client, **kwargs):
         super().__init__(client, **kwargs)
         self.state = self.global_state
 
     def driver_version(self):
-        return 'N/A'
+        return "N/A"

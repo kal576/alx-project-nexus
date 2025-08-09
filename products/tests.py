@@ -14,36 +14,36 @@ class ECommerceAPITests(APITestCase):
     def setUp(self):
         # Create users
         self.admin = User.objects.create_user(
-            email='admin@example.com',
-            username='adminuser',
-            password='adminpass123',
-            is_admin=True
+            email="admin@example.com",
+            username="adminuser",
+            password="adminpass123",
+            is_admin=True,
         )
         self.customer = User.objects.create_user(
-            email='customer@example.com',
-            username='customeruser',
-            password='customerpass123',
-            is_admin=False
+            email="customer@example.com",
+            username="customeruser",
+            password="customerpass123",
+            is_admin=False,
         )
 
         # Create category
-        self.category = Category.objects.create(name='Electronics')
+        self.category = Category.objects.create(name="Electronics")
 
         # Create product
         self.product = Products.objects.create(
-            name='Laptop',
+            name="Laptop",
             stock=10,
             category=self.category,
-            price=Decimal('999.99'),
-            description='High-performance laptop'
+            price=Decimal("999.99"),
+            description="High-performance laptop",
         )
 
         # URLs
-        self.login_url = reverse('token_obtain_pair')
-        self.products_url = reverse('products-list')
-        self.product_detail = lambda pk: reverse('products-detail', kwargs={'pk': pk})
-        self.inventory_url = reverse('inventory-list')
-        self.filter_options_url = reverse('products-filter_options')
+        self.login_url = reverse("token_obtain_pair")
+        self.products_url = reverse("products-list")
+        self.product_detail = lambda pk: reverse("products-detail", kwargs={"pk": pk})
+        self.inventory_url = reverse("inventory-list")
+        self.filter_options_url = reverse("products-filter_options")
 
         # Client
         self.client = APIClient()
@@ -51,34 +51,28 @@ class ECommerceAPITests(APITestCase):
     # 1. User Login Tests
     def test_user_login_correct_credentials(self):
         """Test login with correct credentials"""
-        data = {
-            'email': 'admin@example.com',
-            'password': 'adminpass123'
-        }
+        data = {"email": "admin@example.com", "password": "adminpass123"}
         response = self.client.logout(self.login_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
+        self.assertIn("access", response.data)
 
     def test_user_login_wrong_credentials(self):
         """Test login with wrong password"""
-        data = {
-            'email': 'admin@example.com',
-            'password': 'wrongpass'
-        }
+        data = {"email": "admin@example.com", "password": "wrongpass"}
         response = self.client.post(self.login_url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertNotIn('access', response.data)
+        self.assertNotIn("access", response.data)
 
     # 2. Adding Products
     def test_admin_can_add_product(self):
         """Test admin can create a product"""
         self.client.force_authenticate(user=self.admin)
         data = {
-            'name': 'Phone',
-            'stock': 5,
-            'category': self.category.id,
-            'price': '699.99',
-            'description': 'Latest smartphone'
+            "name": "Phone",
+            "stock": 5,
+            "category": self.category.id,
+            "price": "699.99",
+            "description": "Latest smartphone",
         }
         response = self.client.post(self.products_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -88,10 +82,10 @@ class ECommerceAPITests(APITestCase):
         """Test customer cannot create a product"""
         self.client.force_authenticate(user=self.customer)
         data = {
-            'name': 'Forbidden Product',
-            'stock': 5,
-            'category': self.category.id,
-            'price': '100.00'
+            "name": "Forbidden Product",
+            "stock": 5,
+            "category": self.category.id,
+            "price": "100.00",
         }
         response = self.client.post(self.products_url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -114,7 +108,7 @@ class ECommerceAPITests(APITestCase):
     def test_customer_cannot_edit_stock(self):
         """Test customer cannot update stock via product update"""
         self.client.force_authenticate(user=self.customer)
-        data = {'stock': 9999}
+        data = {"stock": 9999}
         response = self.client.patch(self.product_detail(self.product.id), data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -122,17 +116,17 @@ class ECommerceAPITests(APITestCase):
     def test_admin_can_edit_product(self):
         """Test admin can update product details"""
         self.client.force_authenticate(user=self.admin)
-        data = {'name': 'Updated Laptop', 'price': '1099.99'}
+        data = {"name": "Updated Laptop", "price": "1099.99"}
         response = self.client.patch(self.product_detail(self.product.id), data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.product.refresh_from_db()
-        self.assertEqual(self.product.name, 'Updated Laptop')
-        self.assertEqual(str(self.product.price), '1099.99')
+        self.assertEqual(self.product.name, "Updated Laptop")
+        self.assertEqual(str(self.product.price), "1099.99")
 
     def test_customer_cannot_edit_product(self):
         """Test customer cannot update product"""
         self.client.force_authenticate(user=self.customer)
-        data = {'name': 'Hacked Name'}
+        data = {"name": "Hacked Name"}
         response = self.client.patch(self.product_detail(self.product.id), data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -142,10 +136,10 @@ class ECommerceAPITests(APITestCase):
         """Test admin can add stock via IN movement"""
         self.client.force_authenticate(user=self.admin)
         data = {
-            'product': self.product.id,
-            'mvt_type': MvtType.IN,
-            'quantity': 5,
-            'note': 'New shipment'
+            "product": self.product.id,
+            "mvt_type": MvtType.IN,
+            "quantity": 5,
+            "note": "New shipment",
         }
         response = self.client.post(self.inventory_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -156,10 +150,10 @@ class ECommerceAPITests(APITestCase):
         """Test admin can remove stock via OUT movement"""
         self.client.force_authenticate(user=self.admin)
         data = {
-            'product': self.product.id,
-            'mvt_type': MvtType.OUT,
-            'quantity': 3,
-            'note': 'Sold online'
+            "product": self.product.id,
+            "mvt_type": MvtType.OUT,
+            "quantity": 3,
+            "note": "Sold online",
         }
         response = self.client.post(self.inventory_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -170,23 +164,19 @@ class ECommerceAPITests(APITestCase):
         """Test admin cannot remove more than available stock"""
         self.client.force_authenticate(user=self.admin)
         data = {
-            'product': self.product.id,
-            'mvt_type': MvtType.OUT,
-            'quantity': 15,  # More than 10 in stock
-            'note': 'Attempt to oversell'
+            "product": self.product.id,
+            "mvt_type": MvtType.OUT,
+            "quantity": 15,  # More than 10 in stock
+            "note": "Attempt to oversell",
         }
         response = self.client.post(self.inventory_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('Cannot remove', str(response.data))
+        self.assertIn("Cannot remove", str(response.data))
 
     def test_customer_cannot_add_inventory(self):
         """Test customer cannot add inventory movement"""
         self.client.force_authenticate(user=self.customer)
-        data = {
-            'product': self.product.id,
-            'mvt_type': MvtType.IN,
-            'quantity': 10
-        }
+        data = {"product": self.product.id, "mvt_type": MvtType.IN, "quantity": 10}
         response = self.client.post(self.inventory_url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -208,16 +198,13 @@ class ECommerceAPITests(APITestCase):
         """Test filter_options includes movement types"""
         response = self.client.get(self.filter_options_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('movement_types', response.data)
-        self.assertGreater(len(response.data['movement_types']), 0)
+        self.assertIn("movement_types", response.data)
+        self.assertGreater(len(response.data["movement_types"]), 0)
 
     def test_product_stock_updates_on_inventory_save(self):
         """Test stock is auto-updated when inventory is saved"""
         inventory = Inventory.objects.create(
-            product=self.product,
-            mvt_type=MvtType.IN,
-            quantity=10,
-            note='Initial stock'
+            product=self.product, mvt_type=MvtType.IN, quantity=10, note="Initial stock"
         )
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 20)  # 10 + 10
@@ -225,18 +212,15 @@ class ECommerceAPITests(APITestCase):
     def test_inventory_str_method(self):
         """Test Inventory __str__ method"""
         inventory = Inventory.objects.create(
-            product=self.product,
-            mvt_type=MvtType.IN,
-            quantity=5,
-            note='Test'
+            product=self.product, mvt_type=MvtType.IN, quantity=5, note="Test"
         )
-        self.assertIn('Laptop', str(inventory))
-        self.assertIn('IN', str(inventory))
+        self.assertIn("Laptop", str(inventory))
+        self.assertIn("IN", str(inventory))
 
     def test_product_str_method(self):
         """Test Product __str__ method"""
-        self.assertEqual(str(self.product), 'Laptop')
+        self.assertEqual(str(self.product), "Laptop")
 
     def test_category_str_method(self):
         """Test Category __str__ method"""
-        self.assertEqual(str(self.category), 'Electronics')
+        self.assertEqual(str(self.category), "Electronics")

@@ -1,25 +1,26 @@
 from django.db import models
 from orders.models import Order
 
+
 class Payment(models.Model):
     # Payment Methods
-    CARD = 'card'
-    MPESA = 'mpesa'
-    PAYPAL = 'paypal'
+    CARD = "card"
+    MPESA = "mpesa"
+    PAYPAL = "paypal"
     PAYMENT_METHOD_CHOICES = [
-        (CARD, 'Card'),
-        (MPESA, 'M-Pesa'),
-        (PAYPAL, 'PayPal'),
+        (CARD, "Card"),
+        (MPESA, "M-Pesa"),
+        (PAYPAL, "PayPal"),
     ]
 
     # Payment Status
-    PENDING = 'pending'
-    COMPLETED = 'completed'
-    FAILED = 'failed'
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
     STATUS_CHOICES = [
-        (PENDING, 'Pending'),
-        (COMPLETED, 'Completed'),
-        (FAILED, 'Failed'),
+        (PENDING, "Pending"),
+        (COMPLETED, "Completed"),
+        (FAILED, "Failed"),
     ]
 
     transaction_id = models.CharField(max_length=50, unique=True)

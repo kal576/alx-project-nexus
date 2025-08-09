@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions, status
 from .serializers import OrderSerializer
 from .models import Order, OrderItem
 from carts.models import Cart
+from payments.models import Payment
 from products.models import Products
 from decimal import Decimal
 from rest_framework.permissions import AllowAny
@@ -63,9 +64,12 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             if user.is_authenticated:
-                order = Order.objects.create(user=user, total_amount=total_amount, status='Pending')
+                order = Order.objects.create(user=user, total_amount=total_amount, status='pending')
             else:
-                order = Order.objects.create(total_amount=total_amount, status='Pending')
+                order = Order.objects.create(total_amount=total_amount, status='pending')
+
+            #update payment status
+            Payment.objects.create(status='pending')
 
             #reserve stock awaiting payment
             product.reserved += quantity
@@ -144,3 +148,37 @@ class OrderViewSet(viewsets.ModelViewSet):
             send_order_confirmation.delay(order.id)
 
         return Response({"message":"Order created from cart successfully. Please proceed to payment"}, status=200)
+
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel(self, request, pk=None):
+        """
+        POST /api/orders/cancel-order/
+        Cancels order
+        """
+        
+        order = self.get_object()
+        
+        if order.status == 'cancelled':
+            return Response({"error": "Order already cancelled"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        with transaction.atomic():
+            # Release reserved stock
+            for item in order.items.all():
+                product = item.product
+                product.reserved -= item.quantity
+                product.save(update_fields=['reserved'])
+            
+            # Update order status
+            order.status = 'cancelled'
+            order.save()
+            
+            # Update payment status
+            if hasattr(order, 'payment'):
+                order.payment.status = 'cancelled'
+                order.payment.save()
+                
+        return Response({"message": "Order cancelled. Stock released."})
+
+
+
+
