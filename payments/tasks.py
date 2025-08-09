@@ -14,7 +14,7 @@ def payment_confirmation_email(payment_id):
         if recipient_email:
             send_mail(
                     subject = f"Payment Confirmation - Order #{payment.order.id}",
-                    message = f"
+                    message = f"""
                     Dear {payment.user.username if payment.user else 'Customer'},
                     
                     Your payment of ${payment.amount} for Order {payment.order.id} has been confirmed.
@@ -29,7 +29,7 @@ def payment_confirmation_email(payment_id):
 
                     Best regards,
                     Your Store Team
-                    ",
+                    """,
                     recipient_list=[recipient_email],
                     from_email="noreply@mystore.com")
         else:

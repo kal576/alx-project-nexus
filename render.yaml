@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: django-ecommerce
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn your_project.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DJANGO_SETTINGS_MODULE
+        value: ecommerce_backend.settings.production
+      - key: WEB_CONCURRENCY
+        value: 4
+  
+  - type: worker
+    name: celery-worker
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A your_project worker -l info"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: ecommerce_backend.settings.production
+
+databases:
+  - name: postgres-db
+    databaseName: nershe_db
+    user: Caleb
+
+services:
+  - type: redis
+    name: redis-cache
+    ipAllowList: []
