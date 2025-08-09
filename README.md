@@ -1,4 +1,5 @@
 🛒 **E-commerce Backend**
+
 A robust and scalable backend for an E-commerce system built with Django and Django REST Framework (DRF).
 This backend handles product management, user authentication, cart and order processing, and payment integration, with support for asynchronous task handling via Celery and Redis.
 
