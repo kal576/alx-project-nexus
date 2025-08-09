@@ -1,14 +1,14 @@
 #!/bin/bash
+set -e
 
-#wait for DB
-sleep 10
+echo "=== Starting Deployment ==="
+echo "PORT: $PORT"
 
-#migrate
+echo "Running database migrations..."
 python manage.py migrate
 
+echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-#start server
-exec gunicorn ecommerce_backend.wsgi:application --bind 0.0.0.0:$PORT
-
-
+echo "Starting Gunicorn on 0.0.0.0:$PORT..."
+exec gunicorn ecommerce_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --log-level info
