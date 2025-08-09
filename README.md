@@ -79,24 +79,24 @@ This backend handles product management, user authentication, cart and order pro
 
 **Clone the repository**
 
-  Run git clone https://github.com/your-username/ecommerce-backend.git
+  git clone https://github.com/your-username/ecommerce-backend.git
   Then move into the project directory by running cd ecommerce-backend.
 
 **Create a virtual environment**
 
-    On Linux/macOS, run python3 -m venv env
+    On Linux/macOS, python3 -m venv env
 
-    On Windows, run python -m venv env
+    On Windows, python -m venv env
 
 **Activate the virtual environment**
 
-    On Linux/macOS, run source env/bin/activate
+    On Linux/macOS, source env/bin/activate
 
-    On Windows, run env\Scripts\activate
+    On Windows, env\Scripts\activate
 
 **Install the project dependencies**
 
-    Run pip install -r requirements.txt.
+    pip install -r requirements.txt.
 
 **Set up environment variables**
 
@@ -115,19 +115,19 @@ This backend handles product management, user authentication, cart and order pro
 
 **Create a superuser(optional)**
 
-    Run python manage.py createsuperuser and follow the prompts.
+    python manage.py createsuperuser and follow the prompts.
 
 **Start the Redis server (if not already running)**
 
-    Run redis-server.
+    redis-server.
 
 **Start the Celery worker for asynchronous tasks**
 
-    Run celery -A your_project_name worker -l info.
+    celery -A your_project_name worker -l info.
 
 **Run the Django development server**
 
-    Run python manage.py runserver.
+    python manage.py runserver.
 
 The API will be accessible at http://127.0.0.1:8000/.
 
