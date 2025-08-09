@@ -7,6 +7,7 @@ class Order(models.Model):
     ORDER_STATUS_CHOICES = [
             ('pending', 'Pending'),
             ('paid', 'Paid'),
+            ('expired', 'Expired'),
             ('shipped', 'Shipped'),
             ('complete', 'Complete'),
             ('cancelled', 'Cancelled'),]

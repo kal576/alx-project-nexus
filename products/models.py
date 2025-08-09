@@ -11,7 +11,8 @@ class Category(models.Model):
 
 class Products(models.Model):
     name = models.CharField(max_length=255)
-    stock = models.PositiveIntegerField()
+    stock = models.PositiveIntegerField(default=0)
+    reserved = models.PositiveIntegerField(default=0)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -20,12 +21,17 @@ class Products(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
+    @property
+    def available_stock(self):
+        """Available stock for sale. Reserved happens when an order is confirmed but hasnt been paid for yet"""
+        return self.stock - self.reserved
+
     def __str__(self):
         return self.name
 
     #checks the remaining stocks
     def can_sell(self, quantity):
-        return self.stock >= int(quantity)
+        return self.available_stock >= int(quantity)
 
     class Meta:
         verbose_name_plural = "Products"

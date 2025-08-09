@@ -63,9 +63,13 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             if user.is_authenticated:
-                order = Order.objects.create(user=user, total_amount=total_amount)
+                order = Order.objects.create(user=user, total_amount=total_amount, status='Pending')
             else:
-                order = Order.objects.create(total_amount=total_amount)            
+                order = Order.objects.create(total_amount=total_amount, status='Pending')
+
+            #reserve stock awaiting payment
+            product.reserved += quantity
+            product.save(update_fields=['reserved'])
 
             OrderItem.objects.create(
                     order=order,
@@ -106,20 +110,25 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         if not cart.items.exists():
             return Response({"error": "Cart is empty"}, status=400)
-        
-        #calculate total amount
-        for item in cart.items.all():
-            product = item.product
-            if not product.can_sell(item.quantity):
-                return Response({"error": f"Not enough stock for {product.name}"}, status=400)
-            
-            total_amount += item.quantity * float(item.product.price)
 
         with transaction.atomic():
+            #calculate total amount
+            for item in cart.items.all():
+                product = item.product
+                if not product.can_sell(item.quantity):
+                    return Response({"error": f"Not enough stock for {product.name}"}, status=400)
+            
+                total_amount += item.quantity * float(item.product.price)
+
+                #reserve the product
+                item.product.reserved += item.quantity
+                item.product.save(update_fields=['reserved'])
+                
             #create an order
             order = Order.objects.create(
             user=user if user.is_authenticated else None,
-            total_amount=total_amount
+            total_amount=total_amount,
+            status='pending'
             )
             
             #create order items
