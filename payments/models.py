@@ -32,3 +32,6 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.transaction_id}, {self.order}, {self.created_at}, {self.amount}"
+
+    class Meta:
+        ordering = ["-created_at"]

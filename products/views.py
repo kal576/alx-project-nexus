@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, Min, Max, Avg
+from django.core.exceptions import ValidationError
 from rest_framework import viewsets, status, filters
 from .models import Products, Category, Inventory, MvtType
 from .serializers import (
@@ -87,12 +88,9 @@ class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
 
         if serializer.is_valid():
             try:
-                new_stock = product.update_stock(
-                    quantity=serializer.validated_data["quantity"],
-                    mvt_type=serializer.validated_data["mvt_type"],
-                    note=serializer.validated_data.get("note"),
-                )
-
+                old_stock = product.stock
+                serializer.save()
+                new_stock = product.stock  # get updated stock after save
                 low_stock_alert.delay(product.id)
 
                 return Response({
@@ -119,7 +117,7 @@ class InventoryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Automatically set the creator if needed
-        serializer.save(created_by=self.request.user)
+        serializer.save()
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()

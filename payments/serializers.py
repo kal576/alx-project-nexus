@@ -3,6 +3,8 @@ from .models import Payment
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='order.user.username')
+    
     class Meta:
         model = Payment
         fields = (

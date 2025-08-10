@@ -24,6 +24,8 @@ urlpatterns = [
     path("api/orders/", include("orders.urls")),
     # cart
     path("api/cart/", include("carts.urls")),
+    # cart
+    path("api/payments/", include("payments.urls")),
     # jwt web token
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

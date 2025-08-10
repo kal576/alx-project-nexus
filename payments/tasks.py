@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from celery import shared_task
 
 @shared_task
-def payment_confirmation_email(payment_id):
+def send_payment_confirmation_email(payment_id):
     """Send payment confirmation to users email after successfull payment"""
     try:
         payment = Payment.object.get(id=payment_id)

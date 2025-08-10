@@ -77,7 +77,6 @@ class StockMovementSerializer(serializers.Serializer):
             mvt_type=validated_data["mvt_type"],
             quantity=validated_data["quantity"],
             note=validated_data.get("note", ""),
-            created_by=user
         )
 
         # Update product stock

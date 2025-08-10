@@ -8,7 +8,7 @@ from .serializers import PaymentSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from django.db import transaction
-from .tasks import send_payment_confirmation
+from .tasks import send_payment_confirmation_email
 
 
 class PaymentViewSet(ReadOnlyModelViewSet):
@@ -21,15 +21,11 @@ class PaymentViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if self.request.user.is_staff or self.request.user.is_superuser:
-            return self.queryset.select_related("order", "user").all()
-        elif self.request.user.is_authenticated:
-            return (
-                self.queryset.filter(user=self.request.user)
-                .select_related("order")
-                .all()
-            )
-
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            # Fix select_related: Payment has FK to Order, Order has FK to User
+            return self.queryset.select_related("order", "order__user").all()
+        # Non-admins see no payments
         return self.queryset.none()
 
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
@@ -64,7 +60,6 @@ class PaymentViewSet(ReadOnlyModelViewSet):
         with transaction.atomic():
             payment = Payment.objects.create(
                 order=order,
-                user=self.request.user if self.request.user.is_authenticated else None,
                 amount=order.total_amount,
                 payment_method=payment_method,
                 status="confirmed",
@@ -78,7 +73,7 @@ class PaymentViewSet(ReadOnlyModelViewSet):
             # deduct reserved stock for each order item
             for item in order.items.all():
                 product = item.product
-                product.reserved -= item.quantity
+                product.reserved = max(product.reserved - item.quantity, 0)
                 product.save(update_fields=["reserved"])
 
                 # Log inventory movement
@@ -89,7 +84,7 @@ class PaymentViewSet(ReadOnlyModelViewSet):
                 )
 
             # Send confirmation email async
-            send_payment_confirmation.delay(payment.id)
+            send_payment_confirmation_email.delay(payment.id)
 
             return Response(
                 {
