@@ -103,6 +103,8 @@ class CartItemViewSet(CartMixin, viewsets.ModelViewSet):
         GET /api/cart/cart-items/
         Return cart items for current user/session
         """
+        if getattr(self, "swagger_fake_view", False):
+            return Cart.objects.none()
         cart = self.get_cart()
         return CartItem.objects.filter(cart=cart) if cart else CartItem.objects.none()
 
