@@ -98,6 +98,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_cart(self, request):
         """Gets an existing cart for checkout, else raises an error"""
         if getattr(self, "swagger_fake_view", False):
+            return None
         user = request.user
         session_key = request.session.session_key
         if getattr(self, "swagger_fake_view", False):
