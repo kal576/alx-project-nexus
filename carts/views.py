@@ -13,6 +13,8 @@ from django.shortcuts import get_object_or_404
 class CartMixin:
     def get_cart(self):
         """GET /api/Get or create users cart"""
+        if getattr(self, "swagger_fake_view", False):
+            return None
         if self.request.user.is_authenticated:
             cart, _ = Cart.objects.get_or_create(user=self.request.user)
             return cart
@@ -32,6 +34,7 @@ class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
 
     serializer_class = CartSerializer
     permission_classes = [AllowAny]
+    queryset = Cart.objects.none()
     lookup_field = "pk"
     lookup_value_regex = r"\d+"
 
@@ -40,6 +43,8 @@ class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
         GET /api/cart/cart
         Returns cart for current user/session
         """
+        if getattr(self, "swagger_fake_view", False):
+            return Cart.objects.none()
         cart = self.get_cart()
         return Cart.objects.filter(id=cart.id) if cart else Cart.objects.none()
 
@@ -97,6 +102,7 @@ class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
 class CartItemViewSet(CartMixin, viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
     permission_classes = [AllowAny]
+    queryset = CartItem.objects.none()
 
     def get_queryset(self):
         """
@@ -104,7 +110,7 @@ class CartItemViewSet(CartMixin, viewsets.ModelViewSet):
         Return cart items for current user/session
         """
         if getattr(self, "swagger_fake_view", False):
-            return Cart.objects.none()
+            return CartItem.objects.none()
         cart = self.get_cart()
         return CartItem.objects.filter(cart=cart) if cart else CartItem.objects.none()
 
