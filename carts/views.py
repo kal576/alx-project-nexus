@@ -32,6 +32,8 @@ class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
 
     serializer_class = CartSerializer
     permission_classes = [AllowAny]
+    lookup_field = "pk"
+
 
     def get_queryset(self):
         """
