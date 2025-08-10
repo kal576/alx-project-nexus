@@ -22,7 +22,7 @@ class ProductsSerializer(serializers.ModelSerializer):
 
 
 class AdminProductSerializer(ProductsSerializer):
-    class Meta(ProductsSerializer.Meta):
+    class Meta:
         read_only_fields = ["reserved", "available_stock"]
 
 

@@ -36,14 +36,14 @@ class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
     read_only_fields = ["stocks"]
 
     def get_filterset_class(self):
-        if self.request.user.is_authenticated and self.request.user.is_admin:
+        if self.request.user.is_authenticated and self.request.user.is_staff:
             return AdminProductFilter
         return CustomerProductFilter
 
     def get_serializer_class(self):
         if self.request.user.is_authenticated and self.request.user.is_staff:
-            return AdminProductsSerializer
-        return CustomerProductsSerializer
+            return AdminProductSerializer
+        return ProductsSerializer
 
     @action(detail=False, methods=["get"])
     def filter_options(self, request):
@@ -76,53 +76,35 @@ class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
                 ],
             }
         )
+        
+    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
+    def stock_movement(self, request, pk=None):
+        product = self.get_object()
+        serializer = StockMovementSerializer(
+            data=request.data,
+            context={"product": product, "request": request}
+        )
 
-        @action(detail=True, method=["post"], permission_classes=[IsAdminUser])
-        def stock_movement(self, request, pk=None):
-            """
-            Handles restocking and selling. Only available to admins
-            """
-            product = self.get_object()
-            serializer = StockMovementSerializer(
-                data=request.data, context={"product": product}
-            )
+        if serializer.is_valid():
+            try:
+                new_stock = product.update_stock(
+                    quantity=serializer.validated_data["quantity"],
+                    mvt_type=serializer.validated_data["mvt_type"],
+                    note=serializer.validated_data.get("note"),
+                )
 
-            if serializer.is_valid():
-                try:
-                    new_stock = product.update_stock(
-                        quantity=serializer.validated_data["quantity"],
-                        mvt_type=serializers.validated_data["mvt_type"],
-                        note=erializers.validated_data("note"),
-                    )
+                low_stock_alert.delay(product.id)
 
-                    # low stocks alert
-                    low_stock_alert.delay(product.id)
+                return Response({
+                    "message": "Stock updated successfully",
+                    "old_stock": product.stock,
+                    "new_stock": new_stock,
+                    "movement_type": serializer.validated_data["mvt_type"],
+                })
+            except ValidationError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-                    return Response(
-                        {
-                            "message": "Stock updated successfully",
-                            "old_stock": product.stock,
-                            "new_stock": new_stock,
-                            "movement_type": serializer.validated_data["movement_type"],
-                        }
-                    )
-                except ValidationError as e:
-                    return Response(
-                        {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
-                    )
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class InventoryViewSet(viewsets.ModelViewSet):
-    queryset = Inventory.objects.all()
-    serializer_class = InventorySerializer
-    search_fields = ["name", "stock"]
-    ordering_fields = ["stock", "created_at"]
-    permission_classes = [IsAuthenticated, IsAdminUser]
-
-    def get_filterset_class(self):
-        if self.request.user.is_authenticated and self.request.user.is_admin:
-            return InventoryFilter
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
