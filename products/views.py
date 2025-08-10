@@ -106,6 +106,20 @@ class ProductsViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class InventoryViewSet(viewsets.ModelViewSet):
+    queryset = Inventory.objects.all()
+    serializer_class = InventorySerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]  # Admins only
+
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_class = InventoryFilter
+    search_fields = ['product__name', 'note']  # searchable fields
+    ordering_fields = ['created_at', 'quantity']
+    ordering = ['-created_at']
+
+    def perform_create(self, serializer):
+        # Automatically set the creator if needed
+        serializer.save(created_by=self.request.user)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
