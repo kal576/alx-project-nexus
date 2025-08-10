@@ -19,6 +19,8 @@ class CartMixin:
             cart, _ = Cart.objects.get_or_create(user=self.request.user)
             return cart
         else:
+            if getattr(self, "swagger_fake_view", False):
+                return Cart.objects.none()
             # handles session-based users
             if not self.request.session.session_key:
                 self.request.session.create()
