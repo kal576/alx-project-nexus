@@ -103,6 +103,9 @@ class CartItemViewSet(CartMixin, viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
     permission_classes = [AllowAny]
     queryset = CartItem.objects.none()
+    lookup_field = "pk"
+    lookup_value_regex = r"\d+"
+
 
     def get_queryset(self):
         """
