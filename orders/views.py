@@ -99,6 +99,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         """Gets an existing cart for checkout, else raises an error"""
         user = request.user
         session_key = request.session.session_key
+        if getattr(self, "swagger_fake_view", False):
+            return Cart.objects.none()
 
         if user.is_authenticated:
             cart = Cart.objects.filter(user=user).first()
