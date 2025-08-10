@@ -8,32 +8,36 @@ from .models import Cart, CartItem
 from products.models import Products
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 
 class CartMixin:
     def get_cart(self):
-        """GET /api/Get or create users cart"""
+        """GET /api/cart/ - Get or create user's cart"""
+        # Prevent errors during schema generation
         if getattr(self, "swagger_fake_view", False):
             return None
+
         if self.request.user.is_authenticated:
             cart, _ = Cart.objects.get_or_create(user=self.request.user)
             return cart
-        if not hasattr(self.request,"session"):
-            return None
-            
-        # handles session-based users
+
+        # Handle session-based cart
+        if not hasattr(self.request, "session"):
+            return None  # No session available (e.g., during schema gen)
+
         if not self.request.session.session_key:
             self.request.session.create()
-            session_key = self.request.session.session_key
-            cart, _ = Cart.objects.get_or_create(session_key=session_key)
-            return cart
+
+        session_key = self.request.session.session_key
+        cart, _ = Cart.objects.get_or_create(session_key=session_key)
+        return cart
 
 
 class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
     """
     Allows only viewing of the cart
     """
-
     serializer_class = CartSerializer
     permission_classes = [AllowAny]
     queryset = Cart.objects.none()
@@ -42,7 +46,7 @@ class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """
-        GET /api/cart/cart
+        GET /api/cart/cart/
         Returns cart for current user/session
         """
         if getattr(self, "swagger_fake_view", False):
@@ -50,48 +54,42 @@ class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
         cart = self.get_cart()
         return Cart.objects.filter(id=cart.id) if cart else Cart.objects.none()
 
-    def merge_cart(self, request, user_cart, session_cart):
-        """Merges session-cart with user-cart when he authenticates"""
-        with transaction.atomic():
-            for session_item in session_cart.items.all():
-                user_item, created = CartItem.objects.get_or_create(
-                    cart=user_cart,
-                    product=session_item.product,
-                    defaults={"quantity": session_item.quantity},
-                )
-                if not created:
-                    # if item already exists in user cart, just add the quantity
-                    user_item.quantity += session_item.quantity
-                    user_item.save()
-
-            # delete after merge
-            session_cart.delete()
-
+    @extend_schema(
+        request=CartItemSerializer,
+        responses={200: CartSerializer},
+        description="Add an item to the cart. Creates item if not exists, otherwise increments quantity."
+    )
     @action(detail=False, methods=["post"])
     def add_item(self, request):
         """
         POST /api/cart/cart/add-item/
-        Gets item from CartItem and adds it to cart
+        Adds an item to the cart.
         """
         cart = self.get_cart()
+        if not cart:
+            return Response({"error": "Cart could not be created."}, status=status.HTTP_400_BAD_REQUEST)
+
         product_id = request.data.get("product_id")
         quantity = request.data.get("quantity", 1)
 
-        data = {"product_id": product_id, "quantity": quantity}
+        if not product_id:
+            return Response({"product_id": "This field is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            product = Products.objects.get(id=product_id)
+        except Products.DoesNotExist:
+            return Response({"product_id": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        data = {"product": product.id, "quantity": quantity}
 
         serializer = CartItemSerializer(data=data)
         if serializer.is_valid():
-
-            # prevents duplicate database transactions
             with transaction.atomic():
                 item, created = CartItem.objects.get_or_create(
                     cart=cart,
-                    product=serializer.validated_data["product"],
-                    # if it does not exist, its created with quantity being equal to quantity
-                    defaults={"quantity": quantity},
+                    product=product,
+                    defaults={"quantity": quantity}
                 )
-
-                # if item exists, add quantity
                 if not created:
                     item.quantity += quantity
                     item.save()
@@ -102,44 +100,55 @@ class CartViewSet(CartMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class CartItemViewSet(CartMixin, viewsets.ModelViewSet):
+    """
+    CRUD operations for CartItem
+    """
     serializer_class = CartItemSerializer
     permission_classes = [AllowAny]
     queryset = CartItem.objects.none()
     lookup_field = "pk"
     lookup_value_regex = r"\d+"
 
-
     def get_queryset(self):
         """
         GET /api/cart/cart-items/
-        Return cart items for current user/session
+        Returns cart items for current user/session
         """
         if getattr(self, "swagger_fake_view", False):
             return CartItem.objects.none()
         cart = self.get_cart()
         return CartItem.objects.filter(cart=cart) if cart else CartItem.objects.none()
 
+    @extend_schema(
+        description="Automatically assigns the current cart to the new item."
+    )
     def perform_create(self, serializer):
-        """
-        POST api/cart/cart-items/
-        Auto assigns current cart
-        """
         cart = self.get_cart()
+        if not cart:
+            raise serializers.ValidationError("Cart could not be created.")
         serializer.save(cart=cart)
 
+    @extend_schema(
+        responses={200: CartSerializer},
+        description="Updates the quantity of a cart item and returns the updated cart."
+    )
     def update(self, request, *args, **kwargs):
         """
-        PUT/PATCH /api/cart/cart-items/<id>/
-        Updates quantity
+        PUT/PATCH /api/cart/cart-items/<int:pk>/
+        Updates quantity of a cart item.
         """
         response = super().update(request, *args, **kwargs)
         cart = self.get_cart()
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={200: CartSerializer},
+        description="Removes an item from the cart and returns the updated cart."
+    )
     def destroy(self, request, *args, **kwargs):
         """
-        DELETE /api/cart/cart-items/<id>/
-        Removes an item
+        DELETE /api/cart/cart-items/<int:pk>/
+        Removes an item from the cart.
         """
         super().destroy(request, *args, **kwargs)
         cart = self.get_cart()
